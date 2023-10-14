@@ -62,6 +62,22 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < count; i++) {
         if (readAndParse(inFilePtr, label, opcode, arg0, arg1, arg2)) {
+
+            // Error check : Label size is longer than six
+            if (strlen(label) > 6) {
+                fprintf(stderr, "Error: Label '%s' is longer than six characters.\n", label);
+                exit(1);
+            }
+
+            for (int j = 0; j < i; j++) {
+                // Error check : Using the same label
+                if (asb_code[j].label[0] != '\0' && strcmp(asb_code[j].label, label) == 0) {
+                    fprintf(stderr, "Error: Label '%s' is used more than once.\n", label);
+                    exit(1);
+                }
+            }       
+
+
             if (strcmp(opcode, "add") == 0 || strcmp(opcode, "nand") == 0 ||
                 strcmp(opcode, "lw") == 0 || strcmp(opcode, "sw") == 0 ||
                 strcmp(opcode, "beq") == 0) {
@@ -88,7 +104,7 @@ int main(int argc, char *argv[])
                 asb_code[i].arg1[0] = '\0'; // Set arg1 to null character
                 asb_code[i].arg2[0] = '\0'; // Set arg2 to null character
                 asb_code[i].address = i;
-        } else if (strcmp(opcode, ".fill") == 0) {
+            } else if (strcmp(opcode, ".fill") == 0) {
                 // Handle ".fill" instruction separately.
                 strcpy(asb_code[i].label, label);
                 strcpy(asb_code[i].opcode, opcode);
@@ -103,6 +119,27 @@ int main(int argc, char *argv[])
             }
         }
     }
+
+    // Error check: Using undefined labels
+    for (int i = 0; i < count; i++) {
+        if (!isNumber(asb_code[i].arg2) && asb_code[i].arg2[0] != '\0'){
+            int labelFound = 0;  // Variable to track if the label is found
+            for (int j = 0; j < count; j++) {
+                if (!strcmp(asb_code[j].label, asb_code[i].arg2)) {
+                    labelFound = 1; // Label found, set the flag
+                    break;
+                }
+            }
+            
+            if (!labelFound) {
+                // Handle the case of an undefined label
+                // You can print an error message or perform other error-handling actions here
+                printf("Error: '%s' is Undefined label", asb_code[i].arg2);
+                exit(0);
+            }
+        }
+    }
+
 
     char m_code[count][33];
     char field0[4];
@@ -184,7 +221,7 @@ int main(int argc, char *argv[])
             dectobin(atoi(asb_code[i].arg1), field1, 3);
             snprintf(m_code[i], sizeof(m_code[i]), "0000000101%s%s0000000000000000", field0, field1);
         } else if (!strcmp(asb_code[i].opcode, "halt")) {
-            snprintf(m_code[i], sizeof(m_code[i]), "00000000110000000000000000000000");
+            snprintf(m_code[i], sizeof(m_code[i]), "00000001100000000000000000000000");
         } else if (!strcmp(asb_code[i].opcode, "noop")) {
             snprintf(m_code[i], sizeof(m_code[i]), "00000001110000000000000000000000");
         } else if (!strcmp(asb_code[i].opcode, ".fill")) {
