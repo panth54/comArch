@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>  // Include the header file for isdigit
 
 #define MAXLINELENGTH 1000
 
@@ -69,6 +70,11 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
+            if(isdigit(label[0])){
+                fprintf(stderr, "Error: Label '%s' is starting with number.\n", label);
+                exit(1);
+            }
+
             for (int j = 0; j < i; j++) {
                 // Error check : Using the same label
                 if (asb_code[j].label[0] != '\0' && strcmp(asb_code[j].label, label) == 0) {
@@ -120,6 +126,17 @@ int main(int argc, char *argv[])
         }
     }
 
+    // for (int i = 0; i < count; i++) {
+    //     printf("Instruction %-2d", i );
+    //     printf("Label: %-6s", asb_code[i].label);
+    //     printf("Opcode: %-6s", asb_code[i].opcode);
+    //     printf("Arg0: %-6s", asb_code[i].arg0);
+    //     printf("Arg1: %-6s", asb_code[i].arg1);
+    //     printf("Arg2: %-6s", asb_code[i].arg2);
+    //     printf("Address: %-6d", asb_code[i].address);
+    //     printf("\n");
+    // }
+
     // Error check: Using undefined labels
     for (int i = 0; i < count; i++) {
         if (!isNumber(asb_code[i].arg2) && asb_code[i].arg2[0] != '\0'){
@@ -134,7 +151,7 @@ int main(int argc, char *argv[])
             if (!labelFound) {
                 // Handle the case of an undefined label
                 // You can print an error message or perform other error-handling actions here
-                printf("Error: '%s' is Undefined label", asb_code[i].arg2);
+                printf("Error: '%s' is Undefined label at %d", asb_code[i].arg2,asb_code[i].address);
                 exit(0);
             }
         }
